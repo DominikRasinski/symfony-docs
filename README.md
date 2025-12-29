@@ -73,3 +73,22 @@ class HomeController extends AbstractController
     // code...
 }
 ```
+
+## Struktura podstawowego projektu 
+
+### Główne foldery
+
+- `config/` - folder przechowujący konfiguracje, tutaj można konfigurować routing, serwisy oraz zarządzanie paczkami
+- `src/`  - folder przechowujący cały dostępny kod, tutaj jest pisana cała logika
+- `templates/` - folder generowany automatycznie po zainstalowaniu pakietu `twig` w nim można odnaleźć wszystkie pliki `twig`
+
+### Pozostałe foldery
+
+- `bin/` - folder przechowujący plik `bin/console` oraz wszystkie mniej ważne pliki wykonywalne
+- `var/` - folder przechowujący wszystkie automatycznie tworzone pliki. Typu `cache` (var/cache/) oraz `logi` (var/log/)
+- `vendor/` - folder przeznaczony do przechowywania zewnętrznych paczek/bibliotek instalowanych za pomocą `Composer package manager`
+- `public/` - główny folder do przechowywania wszystkich publicznie dostępnych plików, takich jak obrazki wykorzystywane na stronie albo regulaminy itp.
+
+## Ważne kwestie działania FrameWorku
+
+- [`Routing`](/docs/routing/Routings.md)

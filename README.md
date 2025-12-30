@@ -91,4 +91,4 @@ class HomeController extends AbstractController
 
 ## Ważne kwestie działania FrameWorku
 
-- [`Routing`](/docs/routing/Routings.md)
+- [`Routing`](routing/Routings.md)

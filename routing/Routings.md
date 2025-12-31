@@ -161,3 +161,45 @@ Posiada NIE poprawną liczbę parametrów, czyli jeden z parametrów już wykorz
 ```
 
 Dokumentacja opisująca większą ilość przypadków jak i możliwości odnośnie parametrów wykorzystywanych w routingu tutaj -> 📚 https://symfony.com/doc/current/routing.html#route-parameters
+
+## Debugowanie Routingu
+
+Aby sprawdzać co się dzieje z routingiem mamy dostępną metodą w `cli` symfony pod nazwą:
+
+```bash
+php bin/console debug:router
+```
+Wykonanie jej wyświetli wszystkie dostępne routingi w aplikacji posiada kilka pomocnych do działania parametrów takich jak:
+
+### Aby wyświetlić routingi o podanych metodach, należy skorzystać z flagi --method=nazwa_metody_http
+
+```bash
+php bin/console debug:router --method=GET
+```
+
+```bash
+php bin/console debug:router --method=ANY
+```
+
+### Również można sprawdzić konkretnie nas obchodzący routing poprzez podanie jego nazwy w `cli`
+
+```bash
+php bin/console debug:router app_lucky_number
+```
+Wyświetli podstawowe informacje gdzie taki routing się znajduje
+
+### Sprawdzenie jaki route załapie podany URL
+
+Można przetestować czy routing działa poprawnie poprzez podanie spodziewanego adresu URL jaki powinien zostać obsłużony przez controller i nową metodą podpiętą pod to zapytanie
+
+```bash
+php bin/console router:match /lucky/number/8
+```
+
+Komenda sprawdzi jaki `route` odpowiedział na ciąg znaków w tym przypadku `/lucky/number/8` ale to może być dowolny ciąg, ważne aby to był poprawny ciąg Http
+
+## Generowanie URL
+
+Aby generować URL'e należy podawać do zdefiniowanego `route` parametr `name` który musi być unikalny. Dzięki temu będzie można sprawnie wygenerować link URL do określonej akcji w odrębnym kontrolerze, serwisie. Jeżeli nie dodamy parametru `name` to symfony sam wygeneruje url na podstawie połaczenia nazwy kontrolera i wykonywanej akcji.
+
+📚 - https://symfony.com/doc/current/routing.html#generating-urls-in-controllers

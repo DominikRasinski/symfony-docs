@@ -122,3 +122,102 @@ Aby sprawdzić jakie są dostępne serwisy możliwe do wpięcia możemy wykorzys
 php bin/console debug:autowiring
 ```
 Która wyświetli wszystkie dostępne serwisy gotowe do wpięcia jako argumenty do kontrolerów
+
+### Generowanie kontrolerów za pomocą CLI
+
+Jeżeli projekt ma zainstalowany `Symfony maker` to jest możliwość korzystania z wbudowanych komend CLI do generowania już gotowych klas
+
+Instalacja `Symfony maker` 📚 - https://symfony.com/bundles/SymfonyMakerBundle/current/index.html
+
+Komenda umożliwiająca wygenerowanie nowy kontroler
+
+```bash
+php bin/console make:controller nazwa_nowego_kontrolera
+```
+
+Jeszcze jest możliwość wygenerowania całego `CRUD` na podstawie `Doctrine entity`. Aby móc wygenerować `CRUD` najpierw musimy posiadać skonfigurowany `Doctrine ORM` 📚 - https://symfony.com/doc/current/doctrine.html
+
+Komenda umożliwiająca utworzenie `CRUD` na podstawie `Doctrine entity`:
+
+```bash
+php bin/console make:crud Product
+```
+
+## Obiekt request jako argument kontrolera
+
+Zdarza się, że aplikacja będzie musiała odczytać parametry, pobrać głowę request'u albo uzyskać dostęp do przesłanego pliku. Takie informacje są przechowywane w obiekcie `Symfony Request object`. Aby uzyskać dostęp do takiego obiektu w kontrolerze należy go dodać jako argument do kontrolera oraz zaimportować klasę `Request`.
+
+```php
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+// ...
+
+public function index(Request $request): Response
+{
+    $page = $request->query->get('page', 1);
+
+    // ...
+}
+```
+
+Istnieje możliwość automatycznego mapowania danych jakie są przechowywane w obiekcie `Request` za pomocą atrybutu `MapQueryParameter` i przekazania ich do kontrolera.
+
+Przykład takiego mapowania może polegać na wysłaniu zapytania o następującej wartości:
+
+`https://example.com/dashboard?firstName=John&lastName=Smith&age=27`
+
+Zapytanie możemy mapować w taki sposób:
+
+```php
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+
+// ...
+
+public function dashboard(
+    // Automatyczne wyciągnięcie parametrów z zapytania pasujących do nazwy zmiennej
+    #[MapQueryParameter] string $firstName, //firstName=John
+    #[MapQueryParameter] string $lastName, //lastName=Smith
+    #[MapQueryParameter] int $age, //age=27`
+): Response
+{
+    // ...
+}
+```
+
+Istnieje więcej możliwości mapowania zapytań tutaj jest więcej opisanych 📚 - https://symfony.com/doc/current/controller.html#automatic-mapping-of-the-request
+
+## Zarządzanie sesją
+
+Kontroler ma możliwość do zarządzania sesją użytkownika. Przykładem zarządzania sesją użytkownika jest wykorzystanie `$this->addFlash()` - metoda odpowiedzialna za wyświetlenie wiadomości typu `flash` automatycznie znika z sesji po wyświetleniu.
+
+```php
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+// ...
+
+public function update(Request $request): Response
+{
+    // ...
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        // do some sort of processing
+
+        $this->addFlash(
+            'notice',
+            'Your changes were saved!'
+        );
+        // $this->addFlash() is equivalent to $request->getSession()->getFlashBag()->add()
+
+        return $this->redirectToRoute(/* ... */);
+    }
+
+    return $this->render(/* ... */);
+}
+```
+
+Więcej na temat sesji tutaj 📚 - https://symfony.com/doc/current/session.html#session-intro
+
+## Request i Response obiekt
+
+TODO - dodać info na temat tych obiektów

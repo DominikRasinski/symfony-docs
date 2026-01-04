@@ -220,4 +220,133 @@ Więcej na temat sesji tutaj 📚 - https://symfony.com/doc/current/session.html
 
 ## Request i Response obiekt
 
-TODO - dodać info na temat tych obiektów
+Obiekt `Request` jest przekazywany do kontrolera w momencie dodania go jako parametru.
+
+Klasa `Request` posiada metody jaki i własności dostępne publicznie, które potrafią zwracać informacje na temat aktualnie uzyskanego requestu.
+
+Przykładowe metody dostępne w klasie `**Request**`
+
+```php
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+public function index(Request $request): Response
+{
+    $request->isXmlHttpRequest(); // is it an Ajax request?
+
+    $request->getPreferredLanguage(['en', 'fr']);
+
+    // retrieves GET and POST variables respectively
+    $request->query->get('page');
+    $request->getPayload()->get('page');
+
+    // retrieves SERVER variables
+    $request->server->get('HTTP_HOST');
+
+    // retrieves an instance of UploadedFile identified by foo
+    $request->files->get('foo');
+
+    // retrieves a COOKIE value
+    $request->cookies->get('PHPSESSID');
+
+    // retrieves an HTTP request header, with normalized, lowercase keys
+    $request->headers->get('host');
+    $request->headers->get('content-type');
+}
+```
+
+Tak samo jak klasa `Request`, klasa `Response` posiada metody i właściwości publicznie dostępne. Jednak obiekt response jest typu `ResponseHeaderBag` obiekt tego typu posiada metody umożliwiające na pozyskanie lub ustawienie `response headers`.
+Nazwa nagłówka (Header) jest normalizowana co w rezultacie nazwa `Content-Type` jest równa nazwą `content-type` lub `content_type`
+
+Kontrolery w Symfony mają wymóg zby zwracać obiekt `Response`
+
+```php
+use Symfony\Component\HttpFoundation\Response;
+
+// creates a simple Response with a 200 status code (the default)
+$response = new Response('Hello '.$name, Response::HTTP_OK);
+
+// creates a CSS-response with a 200 status code
+$response = new Response('<style> ... </style>');
+$response->headers->set('Content-Type', 'text/css');
+```
+
+Różne obiekty `Response` są zawarte aby zwracać różne odpowiedzi w zależności od typu takiej odpowiedzi.
+
+Podstawowe typy to:
+
+1. Uzyskiwanie dostępu do wartości konfiguracji
+2. Zwracanie JSON Response
+3. Stremowanie pliku jako obiektu Response
+
+1. Uzyskiwanie dostępu do wartości konfiguracji, aby uzyskać wartość dowolnego parametru konfiguracji z kontrolera, jest używana do tego pomocnicza metoda `getParameter()`
+
+Przykład:
+
+```php
+// ...
+public function index(): Response
+{
+    $contentsDir = $this->getParameter('kernel.project_dir').'/contents';
+    // ...
+}
+```
+
+2. Zwracanie JSON Response, aby zwrócić odpowiedź JSON z kontrolera, jest używana pomocnicza metoda `json()`, która zwróci obiekt typu `JsonResponse` który koduje dane automatycznie
+
+Przykład:
+
+```php
+use Symfony\Component\HttpFoundation\JsonResponse;
+// ...
+
+public function index(): JsonResponse
+{
+    // returns '{"username":"jane.doe"}' and sets the proper Content-Type header
+    return $this->json(['username' => 'jane.doe']);
+
+    // the shortcut defines three optional arguments
+    // return $this->json($data, $status = 200, $headers = [], $context = []);
+}
+```
+
+3. Stremowanie pliku jako obiektu Response, aby stremować plik do przeglądarki z kontrolera używana jest pomocnicza funkcja `file()`
+
+Przykład:
+
+```php
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+// ...
+
+public function download(): BinaryFileResponse
+{
+    // send the file contents and force the browser to download it
+    return $this->file('/path/to/some_file.pdf');
+}
+```
+
+Funkcja `file()` również dostarcza dodatkowe argumenty aby mieć opcje to konfiguracji zachowania
+
+Przykład:
+
+```php
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+// ...
+
+public function download(): BinaryFileResponse
+{
+    // load the file from the filesystem
+    $file = new File('/path/to/some_file.pdf');
+
+    return $this->file($file);
+
+    // rename the downloaded file
+    return $this->file($file, 'custom_name.pdf');
+
+    // display the file contents in the browser instead of downloading it
+    return $this->file('invoice_3241.pdf', 'my_invoice.pdf', ResponseHeaderBag::DISPOSITION_INLINE);
+}
+```
+
+Wiecej informacji na temat samych obiektów `Response` oraz `Request` tutaj: 📚 - https://symfony.com/doc/current/components/http_foundation.html#request

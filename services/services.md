@@ -10,6 +10,8 @@ Aby załadować serwis do kontrolera i mieć możliwość skorzystania z niego w
 
 Przykład użycia serwisu do logowania:
 
+FIXME - poprawić ponieważ jest nie poprawny przykład
+
 ```php
 namespace App\Controller;
 
@@ -103,3 +105,79 @@ class ProductController extends AbstractController
 > W momencie dodania serwisu do kontrolera, to kontener serwisów stworzy obiekt `MessageGenerator` i instancję tego obiektu. 
 > Ale jeżeli nie wywołamy serwisu, kontener serwisów nie stworzy jego instancji oszczędzając pamięć i moc obliczeniową.
 > `MessageGenerator` w momencie tworzenia jest tworzony tylko raz i przechowywany wewnątrz kontenera serwisów i zawsze jest zwraca jego tylko instancja w momencie wywołania danego serwisu.
+
+## Możliwości z serwisami
+
+1. Limiting Services to a specific Symfony Environment - 📚 symfony.com/doc/current/service_container.html#limiting-services-to-a-specific-symfony-environment
+2. Injecting Services/Config into a Service - https://symfony.com/doc/current/service_container.html#limiting-services-to-a-specific-symfony-environment
+
+## Serwis korzystający z serwisu
+
+`Serwisy` mają możliwość korzystania z innych serwisów. Można importować do jednego serwisu wiele innych serwisów z których można korzystać później w klasie w odpowiednich metodach
+
+Aby dodać serwis do serwisu należy podczas tworzenia serwisu bazowego utworzyć specjalną funkcję php `__contruct` której za zadaniem jest konstruowanie oraz inicjalizowanie metod i zmiennych w klasie.
+
+Przykład:
+
+```php
+// src/Service/MessageGenerator.php
+namespace App\Service;
+
+use Psr\Log\LoggerInterface;
+
+class MessageGenerator
+{
+    public function __construct(
+        private LoggerInterface $logger,
+    ) {
+    }
+
+    public function getHappyMessage(): string
+    {
+        $this->logger->info('About to find a happy message!');
+        // ...
+    }
+}
+```
+
+### Dodawanie wielu serwisów do jednego serwisu
+
+Proces dodania kilku serwisów do jednego serwisu przebiega analogicznie jak podczas dodawania jednego serwisu. Należy w metodzie `__contruct` zainicjować serwisu i przypisać je do zmiennych.
+
+Przykład:
+
+```php
+// src/Service/SiteUpdateManager.php
+namespace App\Service;
+
+use App\Service\MessageGenerator;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+
+class SiteUpdateManager
+{
+    public function __construct(
+        // Inicjacja serwisów pod postacią zmiennych
+        private MessageGenerator $messageGenerator,
+        private MailerInterface $mailer,
+    ) {
+    }
+
+    public function notifyOfSiteUpdate(): bool
+    {
+        $happyMessage = $this->messageGenerator->getHappyMessage();
+
+        $email = (new Email())
+            ->from('admin@example.com')
+            ->to('manager@example.com')
+            ->subject('Site update just happened!')
+            ->text('Someone just updated the site. We told them: '.$happyMessage);
+
+        $this->mailer->send($email);
+
+        // ...
+
+        return true;
+    }
+}
+```

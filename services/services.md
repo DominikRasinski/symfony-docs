@@ -1,6 +1,6 @@
 # Serwisy
 
-Serwisy to tak naprawdę re-używalne obiekty pozwalające na łatwiejsze wykonanie danego zadania lub operacji. Zazwyczaj wszystko to co jest wykonywane przez aplikację jest nazywane jako serwis. Na przykład możliwość wysłania maila jest wykonywana przez serwis połaczenie się do bazy danych też jest wykonywane przez serwis i tak dalej...
+Serwisy to tak naprawdę re-używalne obiekty pozwalające na łatwiejsze wykonanie danego zadania lub operacji. Zazwyczaj wszystko to co jest wykonywane przez aplikację jest nazywane serwisem. Na przykład możliwość wysłania maila jest wykonywana przez serwis, połaczenie się do bazy danych też jest wykonywane przez serwis i tak dalej...
 
 W Symfony serwisy są powiązane z specjalnym obiektem `Service container`. `Service container` skupia w sobie wszystkie serwisy dostępne w aplikacji i zarządza ich życiem.
 
@@ -9,8 +9,6 @@ W Symfony serwisy są powiązane z specjalnym obiektem `Service container`. `Ser
 Aby załadować serwis do kontrolera i mieć możliwość skorzystania z niego wewnątrz wskazanego kontrolera, należy nazwę serwisu dodać jako argument to kontrolera oraz odwołać się do niego w ciele kontrolera za pomocą nadanej mu zmiennej.
 
 Przykład użycia serwisu do logowania:
-
-FIXME - poprawić ponieważ jest nie poprawny przykład
 
 ```php
 namespace App\Controller;
@@ -23,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class NaytibaBehavior extends AbstractController
 {
     #[Route('/elder')]
-    public function logElderBehavior(LoggerInterface $logger)
+    public function logElderBehavior(LoggerInterface $logger) // Ładowanie serwisu za pomocą metody parametr injection
     {
         // code for checking elder naytiba behavior
         // return variable isMove
@@ -178,6 +176,69 @@ class SiteUpdateManager
         // ...
 
         return true;
+    }
+}
+```
+
+## Umożliwienie Autowire serwisom i parametrom które domyślnie nie są możliwe do łaczenia za pomocą Autowire
+
+Niektóre z serwisów domyślnie nie są możliwe do przekazania za pomocą techniki `AutoWire` dlatego wymagane jest wymuszenie na nich takiej możliwości.
+
+Parametry możemy pozyskać w kontrolerze za pomocą metody `getParameter` ale ta metoda jest tylko dostępna w kontrolerach. Jeżeli będziemy chcieli skorzystać z parametru na przykład w serwisie i spróbujemy się do niego dostać za pomocą metody `getParameter` to symfony zwróci nam błąd.
+
+Przykład w kontrolerze:
+
+```php
+// src/Controller/MainController.php
+class MainController extends AbstractController
+{
+    public function homepage(): Response
+    {
+        dd($this->getParameter('iss_location_cache_ttl'));
+    }
+}
+```
+
+Przykład przekazania parametru jako argument kontrolera:
+
+Ten przykład zwróci bład, ponieważ symfony nie może argumentu `$issLocationCacheTtl` przypisać jako wartość za pomocą `Autowire`
+```php
+    public function homepage($issLocationCacheTtl,): Response 
+    {
+        // code...
+    }
+```
+
+Aby dostać się do parametru bez wykorzystywania metody `getParameter` należy skorzystać z atrybutu `#[Autowire()]`
+
+Przykład użycia atrybutu pozwalającego na wpięcie parametru za pomoca `AutoWire`
+
+```php
+use Symfony\Component\DependencyInjection\Attribute\Autowire; // wymagany import klasy
+class MainController extends AbstractController
+{
+    public function homepage(
+        #[Autowire(param: 'iss_location_cache_ttl')] //wywołanie atrybutu Autowire
+        $issLocationCacheTtl, // poprawne przekazanie parametru jako argument, to samo można uzyskać w serwisie
+    ): Response {
+    }
+}
+```
+
+### Wpięcie non-autowire serwisu
+
+Istnieją serwisy które domyślnie nie mogą zostać poddane mechanizmowi `AutoWire` i również wymagają wykorzystania atrybutu `#[Autowire()]`
+
+Przykład użycia:
+
+```php
+use Symfony\Component\DependencyInjection\Attribute\Autowire; // import wymaganej klasy
+class MainController extends AbstractController
+{
+    public function homepage(
+        #[Autowire(service: 'twig.command.debug')] // wykorzystanie atrybutu do 
+        DebugCommand $twigDebugCommand,
+    ): Response {
     }
 }
 ```

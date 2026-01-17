@@ -43,3 +43,18 @@ Po skonfigurowaniu bazy danych z jakiej chcemy korzystać należy wykonać nast�
    2. Sprawdzenie czy jakie migracje są zakolejkowane `symfony console doctrine:migrations:list`
    3. Uruchomienie migracji `symfony console doctrine:migrations:migrate`
 4. Baza danych jest gotowa!
+
+## Korzystanie z bazy danych SqlLite
+
+Aby skorzystać z bazy danych i posiadać dane na niej należy na początku uruchomić komendę
+
+1. Uruchomić dostępne migracje aby powstała tabela
+```bash
+symfony console doctrine:migrations:migrate
+```
+2. Uruchomić `fixture` który wypełni bazę danych informacjami
+```bash
+symfony console doctrine:fixtures:load
+```
+
+**Uwaga** podczas pomyłki należy skasować cały plik bazy danych aby mieć pewność, że ID będzie się pokrywać z ID jakie jest wpisane do fixture. Niby odpalenie ponowne `fixture` robi purge na bazie danych ale to i tak zostawia poprzednią inkrementacje bazy.

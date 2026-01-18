@@ -57,4 +57,10 @@ symfony console doctrine:migrations:migrate
 symfony console doctrine:fixtures:load
 ```
 
+Aby korzystać z bazy danych SqlLite należy wejść do folderu `var` i z poziomu `cli` wpisać komendę
+```bash
+sqlite3 .open <nazwa_bazy_danych>
+```
+Domyślna nazwa bazy danych w projekcie symfony to `data_dev.db`
+
 **Uwaga** podczas pomyłki należy skasować cały plik bazy danych aby mieć pewność, że ID będzie się pokrywać z ID jakie jest wpisane do fixture. Niby odpalenie ponowne `fixture` robi purge na bazie danych ale to i tak zostawia poprzednią inkrementacje bazy.

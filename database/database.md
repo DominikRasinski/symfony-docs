@@ -64,3 +64,13 @@ sqlite3 .open <nazwa_bazy_danych>
 Domyślna nazwa bazy danych w projekcie symfony to `data_dev.db`
 
 **Uwaga** podczas pomyłki należy skasować cały plik bazy danych aby mieć pewność, że ID będzie się pokrywać z ID jakie jest wpisane do fixture. Niby odpalenie ponowne `fixture` robi purge na bazie danych ale to i tak zostawia poprzednią inkrementacje bazy.
+
+## Entity
+
+Jest to klasa odwzorowująca tabele z jaką chcemy się komunikować szybkim sposobem na stworzenie klasy `entity` jest wykonanie polecenia w CLI
+
+```bash
+make:entity
+```
+
+Klasa jest pośrednikiem pomiędzy kodem, a bazą danych. Dzięki klasie `entity` `doctrine` wie jak może działać na bazie danych, ponieważ klasa `entity` dostarcza schematu jak wygląda dana tabela.

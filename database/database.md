@@ -74,3 +74,80 @@ make:entity
 ```
 
 Klasa jest pośrednikiem pomiędzy kodem, a bazą danych. Dzięki klasie `entity` `doctrine` wie jak może działać na bazie danych, ponieważ klasa `entity` dostarcza schematu jak wygląda dana tabela.
+
+### Pobieranie danych z bazy danych za pomocą `Doctrine` przy użyciu szablony `entity`
+
+Aby mieć możliwość pobrania danych z bazy danych najpierw warto stworzyć cały proces za pomocą `Doctrine` oraz `Entity` i upewnić się czy migracje zostały wykonane poprawnie, jeżeli tak to można przejść do pobierania danych z bazy do samej aplikacji
+
+Podczas wykonywania operacji `AppFixture::load()` (altess-levoire/altess-levoire/src/DataFixtures/AppFixtures.php) do tej operacji jest przekazywany parameter jako menadżer w przypadku tej aplikacji jest menadżer pośredniczący w operacjach na bazie danych to `Doctrine`. Dlatego teraz aby dobrać się do danych umieszczonych w bazie danych za pomocą `fixture` należy skorzystać z `EntityManagerInterface`
+
+```php
+//altess-levoire/altess-levoire/src/Controller/HomeController.php
+class HomeController extends AbstractController
+{
+
+    #[Route('/')]
+    public function home(EntityManagerInterface $em): Response // autowire EntityManagerInterface pod postacią zmiennej $em
+    {
+
+        $nayiba =  $em->createQuery('SELECT n FROM App\Entity\Naytiba n')->getResult(); //wykonanie surowego zapytania na bazie danych
+
+        $selectedNaytiba = $nayiba[array_rand($nayiba)]; //przypisanie wyniku zapytania do zmiennej
+
+         // wyświetlenie zapytania w szablonie
+        return $this->render(
+               'home.html.twig', [
+                'selectedNaytiba' => $selectedNaytiba,
+               ]
+        );
+    }   
+}
+```
+
+Możliwe jest wykorzystywanie samych zapytań SQL, ale lepszym pomysłem będzie wykorzystanie zapytania na poziomie `klasy` aby z tego skorzystać należy wybrać `createQueryBuilder()`. Umożliwia wykonanie zapytań takich samych jak za pomocą `CreateQuery()` ale nie obciąża nas możliwością popełnienia literówek podczas wpisywania ścieżki do klasy `entity` z jakiej chcemy pobrać dane.
+
+```php
+//altess-levoire/altess-levoire/src/Controller/HomeController.php
+
+    #[Route('/v2')]
+    public function homeV2(EntityManagerInterface $em): Response
+    {
+        $naytiba = $em->createQueryBuilder()
+        ->select('s')
+        ->from(Naytiba::class, 's') //klasa to App\Entity\Naytiba aby przez przypadek nie podać modelu bo nie zadziała
+        ->getQuery()
+        ->getResult();
+
+        $selectedNaytiba = $naytiba[array_rand($naytiba)];
+
+        return $this->render(
+               'home.html.twig', [
+                'selectedNaytiba' => $selectedNaytiba,
+               ]
+        );
+    }
+```
+
+Możliwe jest pobieranie danych za pomocą kryteriów takich jak: 
+1. `findAll()` - pobiera wszystkie rekordy
+2. `findBy(['field' => 'value'])` - pobiera według kryteriów
+3. `findOneBy(['field' => 'value'])` - pobiera jeden rekord według kryteriów
+4. `find()` - pobieranie pojedynczej encji na podstawie klucza głównego (primary key)
+
+Wszystkie te metody są dostarczana za poprzez `EntityManagerInterface` który sam tworzy podstawowe zapytania, ale trzeba pamiętać, że jeżeli element nie zostanie znaleziony to zostanie zwrócona wartość `null`
+
+```php
+//altess-levoire/altess-levoire/src/Controller/NaytibaController.php
+class NaytibaController extends AbstractController
+{
+    #[Route('/naytiba/{id<\d+>}', name: 'naytiba_show')]
+    public function show(int $id, EntityManagerInterface $em): Response
+    {
+        $naytiba = $em->find(Naytiba::class, $id); //pobranie danych za pomocą klucza głównego przy wykorzystaniu metody find() z EntityManagerInterface
+
+        return $this->render (
+            'naytiba.html.twig', ['findNaytiba' => $naytiba]
+        );
+    }
+}
+```
